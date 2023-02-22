@@ -39,3 +39,6 @@ def binary_search(li,val):
 li = [1,2,3,4,5,6,7,8,9]
 
 print(binary_search(li,3))
+
+#%%
+#20230222
