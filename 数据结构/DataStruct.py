@@ -539,3 +539,116 @@ print_linklist(double_linklist_insert(doublelinklist,3,0))
     》 链表这种链式存储的数据结构对树和图的结构有很大的启发性
 '''
 
+
+# %%
+
+
+'''
+树：
+树是一种数据结构 ：比如目录结构
+
+树是一种可以递归定义的数据结构(链式存储的方式)
+
+树是由n个节点组成的集合
+    如果n = 0 这是一个空树
+    如果n>0,那么存在1个节点作为树的根节点，其她节点可以分为m个集合，每个集合本身又是一棵树
+
+'''
+
+class Node:
+    def __init__(self, name, type = 'dir'):
+        self.name = name
+        self.type = type
+
+        self.children = []
+        self.parent = Node
+
+
+    def __repr__(self):
+        return self.name
+
+    
+class FileSyetemTree:
+    def __init__(self):
+        self.root = Node("/")
+        self.now = self.root
+
+    def mkdir(self, name):
+        # 尽量以“/'结尾
+
+        if name[-1] != "/":
+            name += "/"
+
+        node = Node(name)
+        self.now.children.append(node)
+
+        node.parent = self.now
+
+    def ls(self):
+        return self.now.children
+
+
+    def cd(self,name):
+        if name[-1] != "/":
+            name += "/"
+
+        if name == "../":
+            # 返回上一级
+            self.now = self.now.parent
+            return
+
+        for child in self.now.children:
+            #  寻找相对路径
+            if child.name == name:
+                self.now = child
+                return
+        raise ValueError("Invaild dir")
+
+
+tree = FileSyetemTree()
+tree.mkdir("var/")
+tree.mkdir("bin/")
+tree.mkdir("usr/")
+
+tree.cd("bin/")
+tree.mkdir("python/")
+
+
+tree.cd("../")
+print(tree.ls())
+# %%
+'''
+二叉树：
+
+    二叉树的链式存储方式： 将二叉树的节点定义为一个对象，节点之间通过类似链表的链接方式来链接
+
+'''
+
+class BiTreeNode:
+    def __init__(self,data):
+        self.data = data
+        self.lchild = None # 左孩子
+        self.rchild = None # 右孩子
+
+
+a = BiTreeNode("A")
+b = BiTreeNode("B")
+c = BiTreeNode("C")
+d = BiTreeNode("D")
+e = BiTreeNode("E")
+f = BiTreeNode("F")
+g = BiTreeNode("G")
+
+e.lchild = a
+e.rchild = g
+a.rchild = c
+c.lchild = b
+c.rchild = d
+g.rchild = f
+
+root = e
+# 寻找c
+print(root.lchild.rchild.data)
+
+
+# %%
