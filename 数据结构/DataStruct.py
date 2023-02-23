@@ -896,4 +896,294 @@ print(root.lchild.rchild.data)
 
 
 # %%
-# 二叉树查找
+'''
+E（A（L_C（B，D），G（L_F））
+二叉树的遍历方式（递归）：
+》前序遍历：EACBDGF 
+    如果二叉树不为空：先访问自己，再访问左子树，再访问右子树
+》中序遍历：ABCDEGF
+    如果二叉树不为空：先访问左子树，再访问自己，最后访问右子树
+》后序遍历：BDCAFGE
+    如果二叉树不为空：先访问左子树，再访问右子树，最后访问自己
+》层次遍历：EAGCFBD
+    采用队列，先进根节点进队，出队之后，将孩子节点进队，依次进行，直到队列为空
+'''
+class BiTreeNode:
+    def __init__(self, data) -> None:
+        self.data = data
+        self.rchild = None
+        self.lchild = None
+
+a = BiTreeNode("A")
+b = BiTreeNode("B")
+c = BiTreeNode("C")
+d = BiTreeNode("D")
+e = BiTreeNode("E")
+f = BiTreeNode("F")
+g = BiTreeNode("G")
+
+e.lchild = a
+e.rchild = g
+a.rchild = c
+c.lchild = b
+c.rchild = d
+g.rchild = f
+root = e
+# 寻找c
+print(root.lchild.rchild.data)
+
+
+def pre_order(root):
+    '''
+    前序遍历
+    '''
+    if root:
+        print(root.data, end=',')
+        pre_order(root.lchild)
+        pre_order(root.rchild)
+
+
+def in_order(root):
+    '''
+    中序遍历
+    '''
+    if root:
+        in_order(root.lchild)
+        print(root.data, end=",")
+        in_order(root.rchild)
+
+
+def post_order(root):
+    '''后序遍历'''
+    if root:
+        post_order(root.lchild)
+        post_order(root.rchild)
+        print(root.data, end=",")
+
+
+from collections import deque
+def level_order(root):
+    Tree_queue = deque()
+    Tree_queue.append(root)
+    while len(Tree_queue) != 0:
+        node = Tree_queue.popleft()
+        print(node.data, end= ", ")
+
+        if node.lchild:
+            Tree_queue.append(node.lchild)
+        
+        if node.rchild:
+            Tree_queue.append(node.rchild)
+
+
+level_order(root)
+# in_order(root)
+# post_order(root)
+
+# %%
+'''
+二叉搜索树（banary search tree, BST):设x是二叉树的一个节点，如果y是x左子树的一个节点，那么y.key<=x.key; 
+                                如果y是x右子树的一个节点，那么y.key >= x.key
+
+二叉搜素树的查询、插入和删除
+
+****二叉搜索树的中序序列是有序的
+删除：
+（1）如果删除的节点是叶子节点，直接删除
+（2）如果删除的节点只有一个孩子，将此节点的父亲与孩子连接，然后删除
+（3）如果删除的节点有两个孩子，将其右子树的最小节点（该节点最多有一个右孩子**）删除，并替换当前节点，寻找最小节点的
+    方法是往左走到头
+'''
+class BiTreeNode:
+    def __init__(self, data):
+        self.data = data
+        self.lchild = None
+        self.rchild = None
+        self.parent = None
+
+
+class BST:
+    def __init__(self, li=None):
+        self.root = None
+
+        if li:
+            for val in li:
+                # self.root = self.insert_rec(self.root, val)
+                self.insert_no_rec(val)
+
+
+    def insert_rec(self, Node, val):
+        '''插入的递归方法'''
+        if not Node:
+            Node = BiTreeNode(val)
+        
+        elif val < Node.data:
+            Node.lchild = self.insert_rec(Node.lchild, val)
+            Node.lchild.parent = Node
+        
+        elif val > Node.data:
+            Node.rchild = self.insert_rec(Node.rchild, val)
+            Node.rchild.parent = Node
+
+        return Node
+    
+
+    def insert_no_rec(self, val):
+        '''插入的非递归方法'''
+        p = self.root
+        if not p:
+            self.root = BiTreeNode(val)
+            return
+        while True:
+            if val < p.data:
+                if not p.lchild:
+                    p.lchild = BiTreeNode(val)
+                    p.lchild.parent = p
+                    return
+                else:
+                    p = p.lchild
+        
+            elif val > p.data:
+                if not p.rchild:
+                    p.rchild = BiTreeNode(val)
+                    p.rchild.parent = p
+                    return
+                else:
+                    p = p.rchild
+            else:
+                return
+    
+
+    def search_rec(self, node, val):
+        '''查找的递归方法'''
+        if not node:     # 如果为空
+            return None
+        else:
+            if val < node.data:
+                return self.search_rec(node.lchild, val)
+            elif val > node.data:
+                return self.search_rec(node.rchild, val)
+            else:
+                return node
+            
+    
+    def search_no_rec(self,val):
+        '''查找的非递归方法'''
+        p = self.root
+        while p:
+            if val < p.data:
+                p = p.lchild
+            elif val > p.data:
+                p = p.rchild
+            else:
+                return p
+        return None
+    
+      
+    def __remove_node_1(self, node):
+        '''删除的节点是叶子节点'''
+        if not node.parent: # 是根节点
+            self.root = None
+        if node == node.parent.lchild:
+            node.parent.lchild = None
+        else:
+            node.parent.rchild = None
+
+    def __remove_node_21(self, node):
+        '''删除的节点只有一个左孩子'''
+        if not node.parent:
+            self.root = node.lchild
+            node.lchild.parent = None
+
+        elif node == node.parent.lchild:
+            node.parent.lchild = node.lchild
+            node.lchild.parent = node.parent
+        else:
+            node.parent.rchild = node.lchild
+            node.lchild.parent = node.parent
+        
+
+    def __remove_node_22(self, node):
+        '''删除的节点只有一个右孩子'''
+        if not node.parent:
+            self.root = node.rchild
+            node.rchild.parent = None
+
+        elif node == node.parent.rchild: # 删除的节点是它父亲的右孩子
+            node.parent.rchild = node.rchild
+            node.rchild.parent = node.parent
+        
+        else:
+            node.parent.lchild = node.rchild
+            node.rchild.parent = node.parent
+
+
+    
+    def delete(self, val):
+        '''删除节点'''
+        if self.root: # 不是空树
+            node = self.search_no_rec(val)
+            if not node: # 不存在
+                return False
+            
+            if not node.lchild  and not node.rchild:
+                self.__remove_node_1(node)
+            elif node.lchild == None:
+                self.__remove_node_22(node)
+            elif node.rchild == None:
+                self.__remove_node_21(node)
+            else:
+                #有两个孩子节点
+                min_node = node.rchild
+                while min_node.lchild:
+                    min_node = min_node.lchild
+                node.data = min_node.data
+                # 删除min_node
+                if not min_node.rchild:
+                    # 右子树最小的节点没有右孩子
+                    self.__remove_node_1(min_node)
+                else:
+                    self.__remove_node_22(min_node)
+
+
+    def pre_order(self, root):
+        '''
+        前序遍历
+        '''
+        if root:
+            print(root.data, end=',')
+            self.pre_order(root.lchild)
+            self.pre_order(root.rchild)
+
+
+    def in_order(self, root):
+        '''
+        中序遍历
+        '''
+        if root:
+            self.in_order(root.lchild)
+            print(root.data, end=",")
+            self.in_order(root.rchild)
+
+
+    def post_order(self,root):
+        '''后序遍历'''
+        if root:
+            self.post_order(root.lchild)
+            self.post_order(root.rchild)
+            print(root.data, end=",")
+
+            
+b_s_t = BST([1,3,4,5,6,9,2,7,10,8])
+
+# print(b_s_t.root)
+# b_s_t.pre_order(b_s_t.root)
+# print("")
+b_s_t.in_order(b_s_t.root)
+print("")
+# b_s_t.post_order(b_s_t.root)
+b_s_t.delete(4)
+b_s_t.in_order(b_s_t.root)
+
+
+# %%
