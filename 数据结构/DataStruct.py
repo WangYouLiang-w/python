@@ -538,11 +538,255 @@ print_linklist(double_linklist_insert(doublelinklist,3,0))
         》 试利用链表重新实现栈和队列
     》 链表这种链式存储的数据结构对树和图的结构有很大的启发性
 '''
+#%%
+'''
+》哈希表(又称为散列表）是一种线性表的存储结构。哈希表由一个直接寻址和一个哈希函数组成。哈希函数h(k)将元素关键字k作为自变量，返回元素的存储下标：
+    >哈希表一个通过哈希函数来计算数据存储位置的数据结构（很高效的查找的数据结构），通常支持如下操作：
+        》insert(key, value): 插入键值对（key, value)
+        》get(key): 如果存在键为key的键值对则返回其value，否则返回空值
+        》delete(key): 删除键为key的键值对
 
+》 直接寻址表（key为k的元素放在k位置上）：
+    当域U(存放键值对的下标何键值对应，通过寻找下标寻找键值对)很大时，需要消耗大量内存，很不实际
+    如果域U很大而实际出现的key很少，则大量空间被浪费
+    无法处理关键字不是数字的情况
+
+》改进：哈希
+    构建大小为m的寻址表T
+    key为k的元素放到h(k)的位置上
+    h(k)是一个函数，其将域U映射到表T[0,1,...,m-1]
+
+》哈希冲突：
+    由于哈希表的大小是有限的，而要存储的值的总数量是无限的，因此对于任何哈希函数，都会出现两个不同元素映射到同一个位置上的情况，这种情况叫做哈希冲突。
+
+》哈希冲突的解决方法：
+    开放寻址法：如果哈希函数返回的位置已经有值，则可以向后探查新的位置来存储这个值。
+        》线性探查：如果位置i被占用，则探查i+1，i+2，....
+        》二次探查：如果位置i被占用，则探查i+1^2,i-1^2,i+2^2,i-i^2....
+        》二度哈希：有n个哈希函数，当使用第1个哈希函数h1发生冲突时，则尝试使用h2，h3，....
+    
+    拉链法（***）：哈希表每个位置都连接一个链表，当冲突发生时，冲突的元素将被加到该位置链表的最后
+
+》常见的哈希函数
+    除法哈希法：h(k) = k % m
+    乘法哈希法：h(k) = floor(m*(A*key%1)) 向下取整
+    全域哈希法:ha,b(k) = ((a*key + b) mod p) mod m a,b=1,2,...p-1
+
+'''
+class LinkList:
+
+    class Node:
+        def __init__(self, item = None):
+            self.item = item
+            self.next = None
+
+
+    def __init__(self, iterable=None) :
+        self.head = None
+        self.tail = None
+        if iterable:
+            self.extend(iterable)
+
+
+    def append(self, obj):
+        s = LinkList.Node(obj)
+        if not self.head:
+            self.head = s
+            self.tail = s
+        else:
+            self.tail.next = s
+            self.tail = s
+    
+
+    def extend(self, iterable):
+        for obj in iterable:
+            self.append(obj)
+
+    
+    def find(self, obj):
+        for n in self:
+            if n == obj:
+                return True
+            else:
+                return False
+            
+    
+    def __iter__(self):
+        '''迭代器'''
+        return self.LinkListIterator(self.head)
+    
+
+    def __repr__(self) -> str:
+        '''打印时将对象转换成字符串
+          1. for example: ','.join('abc'), “将字符串abc中的每个成员以字符','分隔开再拼接成一个字符串”
+          2.map() 会根据提供的函数对指定序列做映射。
+            第一个参数 function 以参数序列中的每一个元素调用 function 函数，返回包含每次 function 函数返回值的新列表。
+        '''
+        return "<<"+",".join(map(str, self))+">>"
+    
+
+    class LinkListIterator:
+        # 迭代器类
+        def __init__(self, node) -> None:
+            self.node = node
+
+        def __next__(self):
+            # 执行迭代时，循环调用 __next__()
+            if self.node:
+                cur_node = self.node
+                self.node = cur_node.next
+                return cur_node.item
+            
+            else:
+                raise StopIteration
+        
+        
+        def __iter__(self):
+            return self
+
+
+LK = LinkList([1,2,3,4,5])
+
+#可打印列表
+for element in LK:
+    print(element)
+print(LK)
+
+class HashTable:
+    # 类似集合的操作
+    def __init__(self, size = 101):
+        self.size = size
+        self.T = [LinkList() for i in range(self.size)]  
+
+
+    def h(self,k):
+        return k % self.size
+    
+
+    def insert(self, k):
+        i = self.h(k)
+        if self.find(k):
+            print("Duplicated Insert")
+        else:
+            self.T[i].append(k)
+
+
+    def find(self,k):
+        i = self.h(k)
+        return self.T[i].find(k)
+
+
+ht = HashTable()
+ht.insert(0)
+ht.insert(1)
+ht.insert(0)
+print(','.join(map(str, ht.T)))
+# %%
+#---------练习
+class LinkList:
+
+    class Node:
+        def __init__(self, item):
+            self.item = item
+            self.next = None
+
+    
+    class LinkListIterator:
+        def __init__(self, Node=None):
+            self.Node = Node
+
+
+        def __next__(self):
+            curNode = self.Node
+            if not curNode:
+                raise StopIteration
+            else:
+                self.Node = curNode.next
+                return curNode.item
+        
+
+        def __iter__(self):
+            return self
+
+            
+    def __init__(self, iterable=None):
+        self.head = None
+        self.tail = None
+        if iterable:
+            self.expand(iterable)
+
+    
+    def append(self, obj):
+        curNode = LinkList.Node(obj)
+        if not self.head:
+            self.head = curNode
+            self.tail = curNode
+        else:
+            self.tail.next = curNode
+            self.tail = curNode
+
+    
+    def expand(self, iterable):
+        for element in iterable:
+            self.append(element)
+
+
+    def find(self, obj):
+        for n in self:
+            if n == obj:
+                return True
+            else:
+                return False
+            
+
+    def __iter__(self):
+        return self.LinkListIterator(self.head)
+    
+
+    def __repr__(self) -> str:
+        return '<<' + ','.join(map(str, self)) + '>>'
+
+
+LK = LinkList([1,2,3,4,5])
+
+for element in LK:
+    print(element)
+
+print(LK)
+        
+
+class HashTable:
+    def __init__(self, size=101):
+        self.size = size
+        self.T = [LinkList() for n in range(size)]
+
+    def h(self, k):
+        return k % self.size
+    
+
+    def insert(self, obj):
+        i = self.h(obj)
+        if not self.find(obj):
+            self.T[i].append(obj)
+
+            
+    def find(self, obj):
+        i = self.h(obj)
+        if self.T[i].find(obj):
+            print("Doupulict Insert")
+            return True
+        else:
+            return False
+
+
+ht = HashTable()
+
+ht.insert(0)
+ht.insert(1)
+ht.insert(0)        
+print(','.join(map(str,ht.T)))   
 
 # %%
-
-
 '''
 树：
 树是一种数据结构 ：比如目录结构
