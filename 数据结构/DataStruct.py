@@ -991,8 +991,8 @@ level_order(root)
 删除：
 （1）如果删除的节点是叶子节点，直接删除
 （2）如果删除的节点只有一个孩子，将此节点的父亲与孩子连接，然后删除
-（3）如果删除的节点有两个孩子，将其右子树的最小节点（该节点最多有一个右孩子**）删除，并替换当前节点，寻找最小节点的
-    方法是往左走到头
+（3）如果删除的节点有两个孩子，将其右子树的最小节点替换当前节点并（该节点最多有一个右孩子**）删除。（寻找最小节点的
+    方法是往左走到头）
 '''
 class BiTreeNode:
     def __init__(self, data):
@@ -1184,6 +1184,265 @@ print("")
 # b_s_t.post_order(b_s_t.root)
 b_s_t.delete(4)
 b_s_t.in_order(b_s_t.root)
+
+
+# %%
+'''
+平衡二叉树：AVL树
+
+问题：
+    二叉树的平均情况下进行搜索的时间是O(lgn)
+    最坏情况下，树比较倾斜，查找效率是O（n）
+
+解决的方法：
+    随机化插入
+    AVL树：是一棵自平衡的二叉搜索树
+
+AVL树的性质：
+    根的左右子树的高度之差的绝对值不能超过1 （balance factor：右子树的高度 - 左子树的高度）
+    根的左右子树都是平衡二叉树
+
+AVL树的插入：
+    》插入一个节点可能会破坏AVL树的平衡，可以通过《旋转》操作来进行修正
+    》插入一个节点后，只有从插入节点到根节点的路径上的节点的平衡可能被改变。我们需要找出第一个破坏了平衡条件的节点，称之为k。k的两颗子树的高度差为2
+    》不平衡的出现可能有4种情况：
+        》对K的右孩子的右子树插入导致的不平衡:左旋（从上左旋）
+        》对K的左孩子的左子树插入导致的不平衡:右旋（从下右旋）
+        》对K的右孩子的左子树插入导致的不平衡：先右旋，再左旋
+        》对K的左孩子的右子树插入导致的不平衡：先左旋，再右旋
+'''
+
+class BiTreeNode:
+    def __init__(self, data):
+        self.data = data
+        self.lchild = None
+        self.rchild = None
+        self.parent = None
+
+class BST:
+    def __init__(self):
+        self.root = None
+
+
+    def pre_order(self, root):
+        '''
+        前序遍历
+        '''
+        if root:
+            print(root.data, end=',')
+            self.pre_order(root.lchild)
+            self.pre_order(root.rchild)
+
+
+    def in_order(self, root):
+        '''
+        中序遍历
+        '''
+        if root:
+            self.in_order(root.lchild)
+            print(root.data, end=",")
+            self.in_order(root.rchild)
+
+
+    def post_order(self,root):
+        '''后序遍历'''
+        if root:
+            self.post_order(root.lchild)
+            self.post_order(root.rchild)
+            print(root.data, end=",")
+
+            
+class AVLNode(BiTreeNode):
+    def __init__(self, data):
+        super().__init__(data)
+        self.bf = 0
+
+
+class AVLTree(BST):
+    def __init__(self, li=None):
+        BST.__init__(self)
+        if li:
+            for val in li:
+                self.insert_no_rec(val)
+
+    def rotate_left(self, p, c):
+        '''左旋'''
+        s2 = c.lchild 
+        p.rchild = s2
+        if s2:
+            s2.parent = p
+        
+        c.lchild = p
+        p.parent = c
+
+        # 更新bf
+        c.bf = 0
+        g.bf = 0
+        return c
+    
+    
+    def rotate_right(self, p, c):
+        '''右旋'''
+        s2 = c.rchild
+        p.lchild = s2
+        if s2:
+            s2.parent = p
+        c.rchild = p
+        p.parent = c
+
+        c.bf = 0
+        p.bf = 0
+        return c
+
+    
+    def rotate_right_left(self, p, c):
+        '''先右旋再左旋'''
+        g = c.lchild
+        s3 = g.rchild
+        c.lchild = s3
+        if s3:
+            s3.parent = c
+        g.rchild = c
+        c.parent = g
+
+        s2 = g.lchild
+        p.rchild = s2
+        if s2:
+            s2.parent = p
+        g.lchild = p
+        p.parent = g
+
+        #更新bf
+        if g.bf < 0 : #左边沉
+            c.bf = 1
+            p.bf = 0
+        else:
+            c.bf = 0
+            p.bf = -1
+
+        g.bf =0
+        
+        return g
+
+    
+    def rotate_left_right(self, p, c):
+        '''先右旋再左旋'''
+        g = c.rchild
+        s2 = g.lchild
+        c.rchild = s2
+        if s2:
+            s2.parent = c
+        g.lchild = c
+        c.parent = g
+
+        s3 = g.rchild
+        p.lchild = s3
+        if s3:
+            s3.parent = p
+        g.rchild = p
+        p.parent = g
+
+        #更新bf
+        if g.bf < 0 : #左边沉
+            c.bf = 0
+            p.bf = 1
+        else:
+            c.bf = -1
+            p.bf = 0
+
+        g.bf = 0
+        return g
+
+    
+    def insert_no_rec(self, val):
+        '''插入的非递归方法'''
+        p = self.root
+        if not p:
+            self.root = AVLNode(val)
+            return
+        while True:
+            if val < p.data:
+                if not p.lchild:
+                    p.lchild = AVLNode(val)
+                    p.lchild.parent = p
+                    node = p.lchild  # 插入的节点
+                    break
+                else:
+                    p = p.lchild
+        
+            elif val > p.data:
+                if not p.rchild:
+                    p.rchild = AVLNode(val)
+                    p.rchild.parent = p
+                    node = p.rchild
+                    break
+                else:
+                    p = p.rchild
+            else:
+                break
+        
+        # 更新 balance factor
+        # 在插入节点后，若从某个节点的左子树插入，bf-1，从父亲节点开始往上传递bf的变化，如果有一个节点的bf=0，更新结束
+        # 如果有一个节点变成2或-2就不平衡了，然后调节子树（又要分4种情况）
+        while node.parent:   # node.parent 不为空
+            if node.parent.lchild == node: # r如果是从左子树来的，左子树更沉了
+                # 更新node.parent的bf -= 1  
+                # node.parent的bf可能是 -1，0，1
+                if node.parent.bf < 0: # 原来的node.parent.bf == -1,更新后变成-2
+                    # 做旋转
+                    g = node.parent.parent # 为了连接旋转之后的子树
+                    x = node.parent # 旋转前子树的根
+                    if node.bf > 0:
+                        n = self.rotate_left_right(node.parent, node)
+                    else:
+                        n = self.rotate_right(node.parent, node)
+                    # 记得将n和g 连起来
+                elif node.parent.bf > 0:
+                    node.parent.bf = 0
+                    break
+                else:
+                    node.parent.bf = -1
+                    node = node.parent
+                    continue
+
+            else: # 如果是从右子树来的，右子树更沉了
+                # 更新node.parent的bf += 1  
+                # node.parent的bf可能是 -1，0，1
+                if node.parent.bf > 0: # 原来的node.parent.bf == 1,更新后变成2
+                    # 做旋转
+                    g = node.parent.parent # 为了连接旋转之后的子树
+                    x = node.parent # 旋转前子树的根
+                    if node.bf < 0:
+                        n = self.rotate_right_left(node.parent, node)
+                    else:
+                        n = self.rotate_left(node.parent, node)
+                    # 记得将n和g 连起来
+                elif node.parent.bf < 0:
+                    node.parent.bf = 0
+                    break
+                else:
+                    node.parent.bf = 1
+                    node = node.parent
+                    continue
+            
+            # 连接旋转后的子树
+            n.parent = g
+            if g:
+                if x == g.lchild:
+                    g.lchild = n
+                else:
+                    g.rchild = n
+                break
+            else: #调整的是根节点
+                self.root = n
+                break
+
+
+tree = AVLTree([9,8,7,6,5,4,3,2,1])
+
+tree.pre_order(tree.root)
+print("")
+tree.in_order(tree.root)
 
 
 # %%
